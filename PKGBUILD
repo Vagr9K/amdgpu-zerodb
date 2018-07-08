@@ -11,7 +11,7 @@ license=('GPL3')
 depends=('python3')
 provides=('amdgpu-zerodb')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vagr9k/amdgpu-zerodb/archive/v${pkgver}.tar.gz")
-md5sums=('c4fd467f2380382b6ad1c8964ae36fb9')
+md5sums=('5fb5c6aaf518628ef1d87eb16d3e19ed')
 
 package() {
   cd "$srcdir/${pkgname}-${pkgver}"
