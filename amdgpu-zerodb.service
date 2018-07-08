@@ -1,0 +1,9 @@
+[Unit]
+Description=0dB service for AMDGPU
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/amdgpu-zerodb
+
+[Install]
+WantedBy=multi-user.target
