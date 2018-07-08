@@ -37,9 +37,9 @@ def check_config():
     config = configparser.ConfigParser()
     try:
         config.read('/etc/amdgpu-zerodb.conf')
-        MAX_TEMP = config['TEMPERATURES']['MAX_TEMP']
-        MIN_TEMP = config['TEMPERATURES']['MIN_TEMP']
-        REFRESH_DELAY = config['MAIN']['REFRESH_DELAY']
+        MAX_TEMP = float(config['TEMPERATURES']['MAX_TEMP'])
+        MIN_TEMP = float(config['TEMPERATURES']['MIN_TEMP'])
+        REFRESH_DELAY = float(config['MAIN']['REFRESH_DELAY'])
     except Exception as e:
         print('Failed to apply amdgpu-zerodb.conf.')
         print(e)
