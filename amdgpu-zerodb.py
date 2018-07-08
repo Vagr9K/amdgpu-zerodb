@@ -6,6 +6,7 @@ import time
 import signal
 import sys
 import os
+import configparser
 
 # Check for root
 if os.getuid() is not 0:
@@ -17,7 +18,7 @@ MAX_TEMP = 55.0
 MIN_TEMP = 45.0
 IS_COOLLING_DOWN = False
 # Sleep time in seconds
-SLEEP_TIME = 1
+REFRESH_DELAY = 1
 # Filenodes for sysfs
 NODE_PWM = open("/sys/class/drm/card0/device/hwmon/hwmon3/pwm1", "w")
 NODE_FANMODE = open("/sys/class/drm/card0/device/hwmon/hwmon3/pwm1_enable",
@@ -26,6 +27,44 @@ NODE_TEMP = open("/sys/class/drm/card0/device/hwmon/hwmon3/temp1_input", "r")
 
 # State
 CURRENT_MODE = None
+
+
+# Check for configuration
+def check_config():
+    global MAX_TEMP
+    global MIN_TEMP
+    global REFRESH_DELAY
+    config = configparser.ConfigParser()
+    try:
+        config.read('/etc/amdgpu-zerodb.conf')
+        MAX_TEMP = config['TEMPERATURES']['MAX_TEMP']
+        MIN_TEMP = config['TEMPERATURES']['MIN_TEMP']
+        REFRESH_DELAY = config['MAIN']['REFRESH_DELAY']
+    except Exception as e:
+        print('Failed to apply amdgpu-zerodb.conf.')
+        print(e)
+    finally:
+        if MAX_TEMP > 55:
+            originalSetting = MAX_TEMP
+            MAX_TEMP = 55
+            print(
+                'MAX_TEMP is higher than 55 C (originally set to {}). Limiting to prevent hardware damage.'.
+                format(originalSetting))
+        if MIN_TEMP > 55:
+            originalSetting = MIN_TEMP
+            MIN_TEMP = 55
+            print(
+                'MIN_TEMP is higher than 55 C (originally set to {}). Limiting to prevent hardware damage.'.
+                format(originalSetting))
+        if REFRESH_DELAY > 10:
+            originalSetting = REFRESH_DELAY
+            REFRESH_DELAY = 10
+            print(
+                'REFRESH_DELAY is higher than 10 seconds (originally set to {}). Limiting to prevent hardware damage.'.
+                format(originalSetting))
+        print(
+            'Final configuration is: MAX_TEMP: {}, MIN_TEMP: {}, REFRESH_DELAY: {}.'.
+            format(MAX_TEMP, MIN_TEMP, REFRESH_DELAY))
 
 
 # Set automatic handling of fan PWM via AMDGPU
@@ -83,10 +122,12 @@ def exit_handler():
 
 # Setup
 signal.signal(signal.SIGTERM, exit_handler)
+check_config()
+
 try:
     print("Monitoring GPU temp for 0dB mode.")
     while True:
         select_mode()
-        time.sleep(SLEEP_TIME)
+        time.sleep(REFRESH_DELAY)
 finally:
     exit_handler()
