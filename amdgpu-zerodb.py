@@ -129,5 +129,9 @@ try:
     while True:
         select_mode()
         time.sleep(REFRESH_DELAY)
+except Exception as e:
+    print('ERROR: {}'.format(e))
+    print(
+        'An error occurred. Attempting to switch AMDGPU fan control to AUTO.')
 finally:
     exit_handler()
