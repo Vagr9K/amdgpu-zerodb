@@ -14,7 +14,7 @@ if os.getuid() is not 0:
 
 # Temparature state
 MAX_TEMP = 55.0
-COOLING_TOLERANCE = 10.0
+MIN_TEMP = 45.0
 IS_COOLLING_DOWN = False
 # Sleep time in seconds
 SLEEP_TIME = 1
@@ -65,7 +65,7 @@ def select_mode():
     currentTemp = get_temp()
     EFFECTIVE_MAX_TEMP = MAX_TEMP
     if IS_COOLLING_DOWN:
-        EFFECTIVE_MAX_TEMP -= COOLING_TOLERANCE
+        EFFECTIVE_MAX_TEMP = MIN_TEMP
     if currentTemp >= EFFECTIVE_MAX_TEMP:
         IS_COOLLING_DOWN = True
         set_auto(currentTemp)
