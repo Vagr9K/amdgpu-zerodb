@@ -11,7 +11,7 @@ import configparser
 # Check for root
 if os.getuid() is not 0:
     print('ERROR: Root required for access to sysfs.')
-    sys.exit()
+    sys.exit(-1)
 
 # Temparature state
 MAX_TEMP = 55.0
@@ -20,13 +20,38 @@ IS_COOLLING_DOWN = False
 # Sleep time in seconds
 REFRESH_DELAY = 1
 # Filenodes for sysfs
-NODE_PWM = open("/sys/class/drm/card0/device/hwmon/hwmon3/pwm1", "w")
-NODE_FANMODE = open("/sys/class/drm/card0/device/hwmon/hwmon3/pwm1_enable",
-                    "w")
-NODE_TEMP = open("/sys/class/drm/card0/device/hwmon/hwmon3/temp1_input", "r")
+NODE_PWM = None
+NODE_FANMODE = None
+NODE_TEMP = None
 
 # State
 CURRENT_MODE = None
+
+
+# Init sysfs filenodes
+def init_sysfs():
+    global NODE_FANMODE
+    global NODE_PWM
+    global NODE_TEMP
+    print('Initializing sysfs nodes.')
+    try:
+        hwmonPath = 'hwmon3'
+        if not os.path.isdir(
+                '/sys/class/drm/card0/device/hwmon/{}'.format(hwmonPath)):
+            hwmonPath = 'hwmon2'
+            print('Switching to Hwmon2.')
+        NODE_PWM = open(
+            "/sys/class/drm/card0/device/hwmon/{}/pwm1".format(hwmonPath), "w")
+        NODE_FANMODE = open(
+            "/sys/class/drm/card0/device/hwmon/{}/pwm1_enable".format(
+                hwmonPath), "w")
+        NODE_TEMP = open(
+            "/sys/class/drm/card0/device/hwmon/{}/temp1_input".format(
+                hwmonPath), "r")
+    except Exception as e:
+        print("Failed to initialize sysfs file nodes. Aborting.")
+        print(e)
+        sys.exit(-1)
 
 
 # Check for configuration
@@ -125,6 +150,7 @@ signal.signal(signal.SIGTERM, exit_handler)
 check_config()
 
 try:
+    init_sysfs()
     print("Monitoring GPU temp for 0dB mode.")
     while True:
         select_mode()
