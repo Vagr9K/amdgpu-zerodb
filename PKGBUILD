@@ -2,7 +2,7 @@
 # Maintainer: Ruben Harutyunyan <vagr9k@gmail.com>
 
 pkgname=amdgpu-zerodb
-pkgver=0.1
+pkgver=0.2
 pkgrel=1
 pkgdesc="A 0dB service for AMDGPU based GPUs."
 arch=('i686' 'x86_64')
@@ -11,7 +11,7 @@ license=('GPL3')
 depends=('python3')
 provides=('amdgpu-zerodb')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/vagr9k/amdgpu-zerodb/archive/v${pkgver}.tar.gz")
-md5sums=('5fb5c6aaf518628ef1d87eb16d3e19ed')
+md5sums=('de43a88f2c861514bb4e46a6f9d2cf44')
 
 package() {
   cd "$srcdir/${pkgname}-${pkgver}"
