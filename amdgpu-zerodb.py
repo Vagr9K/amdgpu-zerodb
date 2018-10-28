@@ -37,27 +37,32 @@ def init_sysfs():
     global NODE_TEMP
     global NODE_DPM
     print('Initializing sysfs nodes.')
-    try:
-        hwmonPath = 'hwmon3'
-        if not os.path.isdir(
-                '/sys/class/drm/card0/device/hwmon/{}'.format(hwmonPath)):
-            hwmonPath = 'hwmon2'
-            print('Switching to Hwmon2.')
-        NODE_PWM = open(
-            "/sys/class/drm/card0/device/hwmon/{}/pwm1".format(hwmonPath), "w")
-        NODE_FANMODE = open(
-            "/sys/class/drm/card0/device/hwmon/{}/pwm1_enable".format(
-                hwmonPath), "w")
-        NODE_TEMP = open(
-            "/sys/class/drm/card0/device/hwmon/{}/temp1_input".format(
-                hwmonPath), "r")
-        NODE_DPM = open(
-            '/sys/class/drm/card0/device/power_dpm_force_performance_level',
-            "w")
-    except Exception as e:
-        print("Failed to initialize sysfs file nodes. Aborting.")
-        print(e)
-        sys.exit(-1)
+    while True:
+        try:
+            hwmonPath = 'hwmon3'
+            if not os.path.isdir(
+                    '/sys/class/drm/card0/device/hwmon/{}'.format(hwmonPath)):
+                hwmonPath = 'hwmon2'
+                print('Switching to Hwmon2.')
+            NODE_PWM = open(
+                "/sys/class/drm/card0/device/hwmon/{}/pwm1".format(hwmonPath),
+                "w")
+            NODE_FANMODE = open(
+                "/sys/class/drm/card0/device/hwmon/{}/pwm1_enable".format(
+                    hwmonPath), "w")
+            NODE_TEMP = open(
+                "/sys/class/drm/card0/device/hwmon/{}/temp1_input".format(
+                    hwmonPath), "r")
+            NODE_DPM = open(
+                '/sys/class/drm/card0/device/power_dpm_force_performance_level',
+                "w")
+        except Exception as e:
+            print(
+                "Failed to initialize sysfs file nodes. Retrying in 1 second.")
+            print(e)
+            time.sleep(1)
+            continue
+        break
 
 
 # Check for configuration
