@@ -17,12 +17,14 @@ if os.getuid() is not 0:
 MAX_TEMP = 55.0
 MIN_TEMP = 45.0
 IS_COOLLING_DOWN = False
+FORCE_DPM = 'auto'
 # Sleep time in seconds
 REFRESH_DELAY = 1
 # Filenodes for sysfs
 NODE_PWM = None
 NODE_FANMODE = None
 NODE_TEMP = None
+NODE_DPM = None
 
 # State
 CURRENT_MODE = None
@@ -33,6 +35,7 @@ def init_sysfs():
     global NODE_FANMODE
     global NODE_PWM
     global NODE_TEMP
+    global NODE_DPM
     print('Initializing sysfs nodes.')
     try:
         hwmonPath = 'hwmon3'
@@ -48,6 +51,9 @@ def init_sysfs():
         NODE_TEMP = open(
             "/sys/class/drm/card0/device/hwmon/{}/temp1_input".format(
                 hwmonPath), "r")
+        NODE_DPM = open(
+            '/sys/class/drm/card0/device/power_dpm_force_performance_level',
+            "w")
     except Exception as e:
         print("Failed to initialize sysfs file nodes. Aborting.")
         print(e)
@@ -59,12 +65,14 @@ def check_config():
     global MAX_TEMP
     global MIN_TEMP
     global REFRESH_DELAY
+    global FORCE_DPM
     config = configparser.ConfigParser()
     try:
         config.read('/etc/amdgpu-zerodb.conf')
         MAX_TEMP = float(config['TEMPERATURES']['MAX_TEMP'])
         MIN_TEMP = float(config['TEMPERATURES']['MIN_TEMP'])
         REFRESH_DELAY = float(config['MAIN']['REFRESH_DELAY'])
+        FORCE_DPM = config['GPU']['FORCE_DPM']
     except Exception as e:
         print('Failed to apply amdgpu-zerodb.conf.')
         print(e)
@@ -73,23 +81,32 @@ def check_config():
             originalSetting = MAX_TEMP
             MAX_TEMP = 55
             print(
-                'MAX_TEMP is higher than 55 C (originally set to {}). Limiting to prevent hardware damage.'.
-                format(originalSetting))
+                'MAX_TEMP is higher than 55 C (originally set to {}). Limiting to prevent hardware damage.'
+                .format(originalSetting))
         if MIN_TEMP > 55:
             originalSetting = MIN_TEMP
             MIN_TEMP = 55
             print(
-                'MIN_TEMP is higher than 55 C (originally set to {}). Limiting to prevent hardware damage.'.
-                format(originalSetting))
+                'MIN_TEMP is higher than 55 C (originally set to {}). Limiting to prevent hardware damage.'
+                .format(originalSetting))
         if REFRESH_DELAY > 10:
             originalSetting = REFRESH_DELAY
             REFRESH_DELAY = 10
             print(
-                'REFRESH_DELAY is higher than 10 seconds (originally set to {}). Limiting to prevent hardware damage.'.
-                format(originalSetting))
+                'REFRESH_DELAY is higher than 10 seconds (originally set to {}). Limiting to prevent hardware damage.'
+                .format(originalSetting))
         print(
-            'Final configuration is: MAX_TEMP: {}, MIN_TEMP: {}, REFRESH_DELAY: {}.'.
-            format(MAX_TEMP, MIN_TEMP, REFRESH_DELAY))
+            'Final configuration is: MAX_TEMP: {}, MIN_TEMP: {}, REFRESH_DELAY: {}, FORCE_DPM: {}.'
+            .format(MAX_TEMP, MIN_TEMP, REFRESH_DELAY, FORCE_DPM))
+
+
+# Set DPM
+def set_dpm():
+    if FORCE_DPM is not 'auto':
+        print('Setting DPM mode to {}.'.format(FORCE_DPM))
+        NODE_DPM.seek(0)
+        NODE_DPM.write(FORCE_DPM)
+        NODE_DPM.flush()
 
 
 # Set automatic handling of fan PWM via AMDGPU
@@ -151,6 +168,7 @@ check_config()
 
 try:
     init_sysfs()
+    set_dpm()
     print("Monitoring GPU temp for 0dB mode.")
     while True:
         select_mode()
