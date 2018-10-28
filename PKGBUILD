@@ -1,5 +1,4 @@
 # Maintainer: Ruben Harutyunyan <vagr9k@gmail.com>
-# Maintainer: Ruben Harutyunyan <vagr9k@gmail.com>
 
 pkgname=amdgpu-zerodb
 pkgver=0.2
