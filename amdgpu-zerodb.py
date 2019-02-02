@@ -132,6 +132,9 @@ def set_zero(currentTemp=-1):
     if CURRENT_MODE is not 'ZERO':
         print("Disabling GPU fans for 0dB mode. Current temp: {}".format(
             currentTemp))
+        NODE_FANMODE.seek(0)
+        NODE_FANMODE.write('1')
+        NODE_FANMODE.flush()
         NODE_PWM.seek(0)
         NODE_PWM.write('0')
         NODE_PWM.flush()
